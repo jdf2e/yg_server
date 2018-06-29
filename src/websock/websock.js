@@ -1,0 +1,53 @@
+const shelljs = require("shelljs");
+const path = require("path");
+const kill = require('tree-kill');
+const config = require('../util/config');
+const util = require('../util/util');
+
+const websock = {
+    init(socket) {
+        // socket.on("regist", function (data) {
+        //     let record = util.SOCKET_POOL[data.id];
+        //     if (record) {
+        //         if (record.socket) {
+        //             record.socket.disconnect(true);
+        //         }
+        //         if (record.cProcess) {
+        //             kill(record.cProcess.pid);
+        //         }
+        //     }
+        //     util.SOCKET_POOL[data.id] = {
+        //         socket: socket,
+        //         pInfo: data
+        //     }
+        // });
+
+        socket.on("disconnect", function (data) {
+            console.log("disconnect");
+            console.log(socket.containerName);
+            if (socket.containerName) {
+                util.removeContainerByName(socket.containerName);
+            }
+        });
+
+        socket.on("runshell", function (data) {
+            let projectPath = path.join(config.YG_BASE_PATH, data.id);
+            shelljs.mkdir("-p", projectPath);
+            let oldrecord = util.SOCKET_POOL[data.id];
+            if (oldrecord) {
+                if (oldrecord.socket) {
+                    oldrecord.socket.disconnect(true);
+                    util.removeContainerByName("yg_c_id_" + data.id);
+                }
+            };
+            let record = util.SOCKET_POOL[data.id] = {
+                socket: socket,
+                pInfo: data
+            };
+            data.port = ~~data.port || 8080;
+            util.runCMD(data.id, socket, data.port, data.cmd);
+        })
+
+    },
+};
+module.exports = websock;
