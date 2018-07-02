@@ -8,10 +8,12 @@ const cp = require('child_process');
 const config = require("../util/config.js");
 const tar = require("tar");
 const Docker = require('dockerode');
+const getPort = require('get-port');
+
+
 let docker = new Docker();
-module.exports = {
+const util = {
     docker: docker,
-    currentUsedPort: 1,
     SOCKET_POOL: {},
     PORT_POOL: {},
     unZipTo(src, target) {
@@ -20,7 +22,7 @@ module.exports = {
             C: target
         })
     },
-    runCMD(nodeVersion = "8.11.3", puuid, socket, port = 8080, cmd) {
+    async runCMD(nodeVersion = "8.11.3", puuid, socket, port = 8080, cmd) {
         let containerName = socket.containerName = "yg_c_puuid_" + puuid;
         class MyWritable extends Stream.Writable {
             constructor(options) {
@@ -36,11 +38,33 @@ module.exports = {
 
         let projPath = path.join(config.YG_BASE_PATH, puuid);
         console.log(projPath);
+
+        let outerPort;
+        if (util.PORT_POOL[puuid]) {
+            outerPort = await getPort({
+                port: ~~util.PORT_POOL[puuid]
+            });
+        } else {
+            outerPort = await getPort();
+        };
+
+        util.PORT_POOL[puuid] = outerPort;
+        console.log("outerPort", outerPort);
+        console.log("port", port);
         docker.run('yg', cmd, new MyWritable, {
             name: containerName,
             WorkingDir: projPath,
+            ExposedPorts: {
+                [`${port}/tcp`]: {}
+            },
             HostConfig: {
-                Binds: [`${projPath}:${projPath}`]
+                NetworkMode: "default",
+                Binds: [`${projPath}:${projPath}`],
+                PortBindings: {
+                    [`${port}/tcp`]: [{
+                        "HostPort": `${outerPort}`
+                    }]
+                },
             },
             Env: [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`],
         }).then(container => {
@@ -49,9 +73,11 @@ module.exports = {
             }).then(d => {
                 console.log(`socket.disconnect(true);`);
                 socket.disconnect(true);
-            })
+            });
         }).catch(ex => {
-            console.log(ex);
+            util.removeContainerByName(containerName);
+            socket.emit("err", ex);
+            console.log("err:", ex);
         });
     },
     removeContainerByNameUseCp(containerName) {
@@ -74,3 +100,5 @@ module.exports = {
         });
     }
 }
+
+module.exports = util;
