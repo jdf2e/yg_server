@@ -20,8 +20,8 @@ module.exports = {
             C: target
         })
     },
-    runCMD(puuid, socket, port = 8080, cmd) {
-        let containerName = socket.containerName = "yg_c_id_" + puuid;
+    runCMD(nodeVersion = "8.11.3", puuid, socket, port = 8080, cmd) {
+        let containerName = socket.containerName = "yg_c_puuid_" + puuid;
         class MyWritable extends Stream.Writable {
             constructor(options) {
                 super(options);
@@ -42,7 +42,7 @@ module.exports = {
             HostConfig: {
                 Binds: [`${projPath}:${projPath}`]
             },
-            Env: ["PATH=/root/.nvm/versions/node/v8.11.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
+            Env: [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`],
         }).then(container => {
             return container.remove({
                 force: true
@@ -73,7 +73,4 @@ module.exports = {
             });
         });
     }
-
-
-
 }

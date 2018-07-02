@@ -31,21 +31,21 @@ const websock = {
         });
 
         socket.on("runshell", function (data) {
-            let projectPath = path.join(config.YG_BASE_PATH, data.id);
+            let projectPath = path.join(config.YG_BASE_PATH, data.config.puuid);
             shelljs.mkdir("-p", projectPath);
-            let oldrecord = util.SOCKET_POOL[data.id];
+            let oldrecord = util.SOCKET_POOL[data.config.puuid];
             if (oldrecord) {
                 if (oldrecord.socket) {
                     oldrecord.socket.disconnect(true);
-                    util.removeContainerByName("yg_c_id_" + data.id);
+                    util.removeContainerByName("yg_c_puuid_" + data.config.puuid);
                 }
             };
-            let record = util.SOCKET_POOL[data.id] = {
+            let record = util.SOCKET_POOL[data.config.puuid] = {
                 socket: socket,
                 pInfo: data
             };
-            data.port = ~~data.port || 8080;
-            util.runCMD(data.id, socket, data.port, data.cmd);
+            data.config.port = ~~data.port || 8080;
+            util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
         })
 
     },
