@@ -33,8 +33,15 @@ module.exports = {
                 callback();
             }
         };
+
+        let projPath = path.join(config.YG_BASE_PATH, puuid);
+        console.log(projPath);
         docker.run('yg', cmd, new MyWritable, {
             name: containerName,
+            WorkingDir: projPath,
+            HostConfig: {
+                Binds: [`${projPath}:${projPath}`]
+            },
             Env: ["PATH=/root/.nvm/versions/node/v8.11.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
         }).then(container => {
             return container.remove({
@@ -43,6 +50,8 @@ module.exports = {
                 console.log(`socket.disconnect(true);`);
                 socket.disconnect(true);
             })
+        }).catch(ex => {
+            console.log(ex);
         });
     },
     removeContainerByNameUseCp(containerName) {
