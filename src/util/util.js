@@ -3,7 +3,7 @@ const path = require("path");
 const _ = require("lodash");
 const Stream = require("stream");
 const URL = require('url');
-const shell = require('shelljs');
+const shelljs = require('shelljs');
 const cp = require('child_process');
 const config = require("../util/config.js");
 const tar = require("tar");
@@ -20,6 +20,23 @@ const util = {
         return tar.x({
             file: src,
             C: target
+        })
+    },
+    async tarFolder(puuid) {
+        //console.log("打包中");
+        let tarFileName = puuid + ".tgz";
+        let targetTarFilePath = path.join(__dirname, "../../static", tarFileName);
+        shelljs.mkdir("-p", path.dirname(targetTarFilePath));
+        shelljs.rm(targetTarFilePath);
+        return tar.c({
+            gzip: true,
+            file: targetTarFilePath,
+            cwd: config.YG_BASE_PATH,
+            filter: function (p, stat) {
+                return p !== "node_modules" && !/.tgz$/ig.test(p)
+            }
+        }, [puuid]).then(d => {
+            return targetTarFilePath;
         })
     },
     async runCMD(nodeVersion = "8.11.3", puuid, socket, port = 8080, cmd) {
@@ -58,7 +75,7 @@ const util = {
                 [`${port}/tcp`]: {}
             },
             HostConfig: {
-                // NetworkMode: "default",
+                NetworkMode: "isolated_nw",
                 Binds: [`${projPath}:${projPath}`],
                 PortBindings: {
                     [`${port}/tcp`]: [{
