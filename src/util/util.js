@@ -58,7 +58,7 @@ const util = {
                 [`${port}/tcp`]: {}
             },
             HostConfig: {
-                NetworkMode: "default",
+                // NetworkMode: "default",
                 Binds: [`${projPath}:${projPath}`],
                 PortBindings: {
                     [`${port}/tcp`]: [{
