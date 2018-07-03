@@ -44,7 +44,7 @@ const websock = {
                 socket: socket,
                 pInfo: data
             };
-            data.config.port = ~~data.port || 8080;
+            data.config.port = ~~data.config.port || 8080;
             util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
         })
 
