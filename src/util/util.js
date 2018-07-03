@@ -22,23 +22,42 @@ const util = {
             C: target
         })
     },
-    async tarFolder(puuid) {
+
+    async tarFolder(puuid, downloadFolder) {
         //console.log("打包中");
+        let folders = [puuid];
+        let cwd = path.join(config.YG_BASE_PATH, puuid);
+
+        if (downloadFolder != "." && downloadFolder != "all") {
+            downloadFolder = _.trim(downloadFolder, '/');
+            cwd = path.join(cwd, downloadFolder);
+            cwd = path.dirname(cwd);
+
+            let targetFolder = downloadFolder.split('/').pop();
+            folders = [targetFolder];
+        } else {
+            folders = [...shelljs.ls(cwd)];
+        }
+
+
         let tarFileName = puuid + ".tgz";
         let targetTarFilePath = path.join(__dirname, "../../static", tarFileName);
         shelljs.mkdir("-p", path.dirname(targetTarFilePath));
-        shelljs.rm(targetTarFilePath);
+        if (fs.existsSync(targetTarFilePath)) {
+            shelljs.rm(targetTarFilePath);
+        }
         return tar.c({
             gzip: true,
             file: targetTarFilePath,
-            cwd: config.YG_BASE_PATH,
+            cwd: cwd,
             filter: function (p, stat) {
                 return p !== "node_modules" && !/.tgz$/ig.test(p)
             }
-        }, [puuid]).then(d => {
+        }, folders).then(d => {
             return targetTarFilePath;
         })
     },
+
     async runCMD(nodeVersion = "8.11.3", puuid, socket, port = 8080, cmd) {
         let containerName = socket.containerName = "yg_c_puuid_" + puuid;
         class MyWritable extends Stream.Writable {
@@ -64,10 +83,10 @@ const util = {
         } else {
             outerPort = await getPort();
         };
-
         util.PORT_POOL[puuid] = outerPort;
-        console.log("outerPort", outerPort);
-        console.log("port", port);
+        socket.emit("receive", {
+            outerPort: outerPort,
+        });
         docker.run('yg', cmd, new MyWritable, {
             name: containerName,
             WorkingDir: projPath,
