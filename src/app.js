@@ -8,6 +8,7 @@ const baseRouter = require('./router/base');
 const websock = require("./websock/websock");
 
 const app = new Koa();
+app.use(static(path.join(__dirname, "../", "static")));
 app.use(formidable({
     uploadDir: config.YG_TMP_PATH,
 }))
