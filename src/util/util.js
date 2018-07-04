@@ -91,7 +91,7 @@ const util = {
         /**
          * 注射器，多种构建平台猜测配置文件
          */
-        if (util.webpackInjector(projPath, outerPort)) {
+        if (util.webpackDevServerInjector(projPath, outerPort)) {
             port = outerPort;
         };
         docker.run('yg', cmd, new MyWritable, {
@@ -143,32 +143,27 @@ const util = {
             });
         });
     },
-    webpackInjector(currentFolder, port) {
+    webpackDevServerInjector(currentFolder, port) {
+        let flag = false;
         let packageJSONFile = path.join(currentFolder, "package.json");
         if (fs.existsSync(packageJSONFile)) {
-            let isUseWebpackDevServer = fs.readFileSync(packageJSONFile, "utf-8").includes("webpack-dev-server");
-            if (isUseWebpackDevServer) {
-                let cfgFile = path.join(currentFolder, "config", "index.js");
-                if (fs.existsSync(cfgFile)) {
-                    let cfgIdx = require(cfgFile);
-                    if (cfgIdx.dev) {
-                        let txt = fs.readFileSync(cfgFile, "utf-8");
-                        txt = txt.replace(/dev\s*:\s*\{/ig, d => {
-                            return `dev: { disableHostCheck:true,`
-                        });
-                        txt = txt.replace(/host\s*:.*?,/ig, d => {
-                            return `host:"0.0.0.0",`
-                        });
-                        txt = txt.replace(/port\s*:.*?,/ig, d => {
-                            return `port:${port},`
-                        });
-                        fs.writeFileSync(cfgFile, txt, "utf-8");
-                        return true;
+            let packageTxt = fs.readFileSync(packageJSONFile, "utf-8");
+            let packageObj = JSON.parse(packageTxt);
+            if (packageObj.scripts) {
+                Object.keys(packageObj.scripts).map(key => {
+                    let val = packageObj.scripts[key] + "";
+                    if (val.includes("webpack-dev-server")) {
+                        flag = true;
+                        if (!val.includes("--host") || !val.includes("--port") || !val.includes("--disable-host-check")) {
+                            val = val.replace("webpack-dev-server", `webpack-dev-server --host 0.0.0.0  --port ${port}   --disable-host-check `);
+                        }
                     }
-                }
+                    packageObj.scripts[key] = val
+                });
+                fs.writeFileSync(packageJSONFile, JSON.stringify(packageObj, null, 2));
             }
-
         }
+        return flag;
     }
 }
 

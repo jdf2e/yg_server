@@ -21,6 +21,6 @@ io.on('connect', (socket) => {
     websock.init(socket);
 });
 
-let port = process.argv[2] ? ~~process.argv[2] : config.YG_PORT;
-server.listen(port);
-console.log("listen at", port);
+let port = process.env.YG_PORT || 80;
+server.listen(~~port);
+console.log("listen at", ~~port);
