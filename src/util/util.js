@@ -91,7 +91,9 @@ const util = {
         /**
          * 注射器，多种构建平台猜测配置文件
          */
+        console.log(outerPort)
         if (util.webpackDevServerInjector(projPath, outerPort)) {
+            console.log(outerPort)
             port = outerPort;
         };
         docker.run('yg', cmd, new MyWritable, {
