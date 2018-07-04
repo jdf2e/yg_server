@@ -74,7 +74,6 @@ const util = {
 
         let projPath = path.join(config.YG_BASE_PATH, puuid);
         console.log(projPath);
-
         let outerPort;
         if (util.PORT_POOL[puuid]) {
             outerPort = await getPort({
@@ -87,6 +86,14 @@ const util = {
         socket.emit("receive", {
             outerPort: outerPort,
         });
+
+
+        /**
+         * 注射器，多种构建平台猜测配置文件
+         */
+        if (util.webpackInjector(projPath, outerPort)) {
+            port = outerPort;
+        };
         docker.run('yg', cmd, new MyWritable, {
             name: containerName,
             WorkingDir: projPath,
@@ -134,6 +141,33 @@ const util = {
                 });
             });
         });
+    },
+    webpackInjector(currentFolder, port) {
+        let packageJSONFile = path.join(currentFolder, "package.json");
+        if (fs.existsSync(packageJSONFile)) {
+            let isUseWebpackDevServer = fs.readFileSync(packageJSONFile, "utf-8").includes("webpack-dev-server");
+            if (isUseWebpackDevServer) {
+                let cfgFile = path.join(currentFolder, "config", "index.js");
+                if (fs.existsSync(cfgFile)) {
+                    let cfgIdx = require(cfgFile);
+                    if (cfgIdx.dev) {
+                        let txt = fs.readFileSync(cfgFile, "utf-8");
+                        txt = txt.replace(/dev\s*:\s*\{/ig, d => {
+                            return `dev: { disableHostCheck:true,`
+                        });
+                        txt = txt.replace(/host\s*:.*?,/ig, d => {
+                            return `host:"0.0.0.0",`
+                        });
+                        txt = txt.replace(/port\s*:.*?,/ig, d => {
+                            return `port:${port},`
+                        });
+                        fs.writeFileSync(cfgFile, txt, "utf-8");
+                        return true;
+                    }
+                }
+            }
+
+        }
     }
 }
 
