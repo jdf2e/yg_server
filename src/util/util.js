@@ -94,6 +94,7 @@ const util = {
                 [`${port}/tcp`]: {}
             },
             HostConfig: {
+                //Privileged: true,
                 NetworkMode: "isolated_nw",
                 Binds: [`${projPath}:${projPath}`],
                 PortBindings: {
