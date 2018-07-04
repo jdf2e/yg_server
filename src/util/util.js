@@ -160,6 +160,7 @@ const util = {
                     let val = packageObj.scripts[key] + "";
                     if (val.includes("webpack-dev-server")) {
                         flag = true;
+                        console.log(val);
                         if (!val.includes("--disable-host-check")) {
                             val += " --disable-host-check "
                         }
@@ -175,6 +176,7 @@ const util = {
                         } else {
                             val += ` --port ${~~port}`
                         }
+                        console.log(val);
                     }
                     packageObj.scripts[key] = val
                 });
