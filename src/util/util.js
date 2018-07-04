@@ -160,28 +160,21 @@ const util = {
                     let val = packageObj.scripts[key] + "";
                     if (val.includes("webpack-dev-server")) {
                         flag = true;
-                        console.log(val);
                         if (!val.includes("--disable-host-check")) {
-                            console.log("!has --disable-host-check");
                             val += " --disable-host-check "
                         }
 
                         if (val.includes("--host")) {
-                            console.log("--host");
                             val = val.replace(/--host\s*\S*/ig, " --host 0.0.0.0 ");
                         } else {
-                            console.log("+++++host");
                             val += " --host 0.0.0.0 "
                         }
 
                         if (val.includes("--port")) {
-                            console.log("--host");
                             val = val.replace(/--port\s*\S*/ig, ` --port ${~~port}`);
                         } else {
-                            console.log("+++++port");
                             val += ` --port ${~~port}`
                         }
-                        console.log(val);
                     }
                     packageObj.scripts[key] = val
                 });
