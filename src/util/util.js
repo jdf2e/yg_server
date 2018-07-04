@@ -88,11 +88,17 @@ const util = {
         });
 
 
+
+
+        let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`];
+
         /**
          * 注射器，多种构建平台猜测配置文件
          */
         if (util.webpackDevServerInjector(projPath, outerPort)) {
             port = outerPort;
+            evn.push("HOST=0.0.0.0");
+            evn.push("PORT=" + port);
         };
         docker.run('yg', cmd, new MyWritable, {
             name: containerName,
@@ -110,7 +116,7 @@ const util = {
                     }]
                 },
             },
-            Env: [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`],
+            Env: evn,
         }).then(container => {
             return container.remove({
                 force: true
@@ -154,7 +160,21 @@ const util = {
                     let val = packageObj.scripts[key] + "";
                     if (val.includes("webpack-dev-server")) {
                         flag = true;
-                        val += `  --host 0.0.0.0  --port ${port}   --disable-host-check `
+                        if (!val.includes("--disable-host-check")) {
+                            val += " --disable-host-check "
+                        }
+
+                        if (val.includes("--host")) {
+                            val = val.replace(/--host\s*\S*/ig / ig, " --host 0.0.0.0 ");
+                        } else {
+                            val += " --host 0.0.0.0 "
+                        }
+
+                        if (val.includes("--port")) {
+                            val = val.replace(/--port\s*\S*/ig / ig, ` --port ${~~port}`);
+                        } else {
+                            val += ` --port ${~~port}`
+                        }
                     }
                     packageObj.scripts[key] = val
                 });
