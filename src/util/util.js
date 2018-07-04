@@ -165,13 +165,13 @@ const util = {
                         }
 
                         if (val.includes("--host")) {
-                            val = val.replace(/--host\s*\S*/ig / ig, " --host 0.0.0.0 ");
+                            val = val.replace(/--host\s*\S*/ig, " --host 0.0.0.0 ");
                         } else {
                             val += " --host 0.0.0.0 "
                         }
 
                         if (val.includes("--port")) {
-                            val = val.replace(/--port\s*\S*/ig / ig, ` --port ${~~port}`);
+                            val = val.replace(/--port\s*\S*/ig, ` --port ${~~port}`);
                         } else {
                             val += ` --port ${~~port}`
                         }
