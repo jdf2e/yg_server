@@ -3,6 +3,7 @@ const path = require("path");
 const kill = require('tree-kill');
 const config = require('../util/config');
 const util = require('../util/util');
+const {runCMD} = require('../util/interact');
 
 const websock = {
     init(socket) {
@@ -44,10 +45,12 @@ const websock = {
                 socket: socket,
                 pInfo: data
             };
-            data.config.port = ~~data.config.port || 8080;
-            util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
-        })
+            data.config.port = ~~data.config.port || config.CONTAINER_PORT;
 
+            // todo 这是个异步方法
+            runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
+            // util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
+        });
     },
 };
 module.exports = websock;

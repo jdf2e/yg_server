@@ -58,7 +58,7 @@ const util = {
         })
     },
 
-    async runCMD(nodeVersion = "8.11.3", puuid, socket, port = 8080, cmd) {
+    async runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTAINER_PORT, cmd) {
         let containerName = socket.containerName = "yg_c_puuid_" + puuid;
         class MyWritable extends Stream.Writable {
             constructor(options) {
@@ -71,6 +71,18 @@ const util = {
                 callback();
             }
         };
+        class MyReadable extends Stream.Readable {
+            constructor(options) {
+                super(options);
+            }
+            _read() {
+                socket.on('stdin', (input) => {
+                    console.log('stdin', input);
+                    this.push(input);
+                    this.push(null);
+                });
+            }
+        }
 
         let projPath = path.join(config.YG_BASE_PATH, puuid);
         console.log(projPath);
@@ -88,8 +100,6 @@ const util = {
         });
 
 
-
-
         let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`];
 
         /**
@@ -100,15 +110,21 @@ const util = {
             evn.push("HOST=0.0.0.0");
             evn.push("PORT=" + port);
         };
+        console.log('port----', port, outerPort);
+        console.log(cmd)
         docker.run('yg', cmd, new MyWritable, {
             name: containerName,
+            AttachStdin: true,
+            OpenStdin: true,
+            // AttachStdout: true,
+            // AttachStderr: true,
             WorkingDir: projPath,
             ExposedPorts: {
                 [`${port}/tcp`]: {}
             },
             HostConfig: {
                 //Privileged: true,
-                NetworkMode: "isolated_nw",
+                // NetworkMode: "host",
                 Binds: [`${projPath}:${projPath}`],
                 PortBindings: {
                     [`${port}/tcp`]: [{
@@ -117,7 +133,12 @@ const util = {
                 },
             },
             Env: evn,
-        }).then(container => {
+        })
+        .then(container => {
+            console.log(container)
+            return container;
+        })
+        .then(container => {
             return container.remove({
                 force: true
             }).then(d => {
