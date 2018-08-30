@@ -11,9 +11,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
       super(options);
     }
     _write(chunk, encoding, callback) {
-      let stringData = chunk.toString();
-      socket.emit("msg", stringData);
-      console.log(stringData)
+      socket.emit("msg", chunk);
       callback();
     }
   };
@@ -23,11 +21,14 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
     }
     _read() {
       socket.on('stdin', (input) => {
-        console.log('stdin', input+'\n');
         this.push(input);
+        this.push('');
       });
     }
   }
+
+  const mystdin = new MyReadable();
+  const mystdout = new MyWritable();
 
   let containerName = socket.containerName = "yg_c_puuid_" + puuid;
   let projPath = path.join(config.YG_BASE_PATH, puuid);
@@ -45,7 +46,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
     outerPort: outerPort,
   });
 
-  let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`];
+  let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${projPath}/node_modules/.bin`];
 
   /**
    * 注射器，多种构建平台猜测配置文件
@@ -59,62 +60,91 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
 
   const docker = new Docker();
 
+  const solidName = 'solid'; // 固化模板的名称
+  const solidPath = path.resolve(config.YG_SOLID_PATH, solidName);
   docker.createContainer({
-    Image: 'yg',
-    name: containerName,
-    Cmd: ['/bin/bash', '-c', cmd.join(' ')],
-    AttachStdin: true,
-    AttachStdout: true,
-    AttachStderr: true,
-    Tty: true,
-    OpenStdin: true,
-    WorkingDir: projPath,
-    ExposedPorts: {
-      [`${port}/tcp`]: {}
-    },
-    HostConfig: {
-      //Privileged: true,
-      // NetworkMode: "host",
-      Binds: [`${projPath}:${projPath}`],
-      PortBindings: {
-        [`${port}/tcp`]: [{
-          "HostPort": `${outerPort}`
-        }]
+      Image: 'yg',
+      name: containerName,
+      Cmd: ['/bin/bash', '-c', cmd.join(' ')],
+      AttachStdin: true,
+      AttachStdout: true,
+      AttachStderr: true,
+      Tty: true,
+      OpenStdin: true,
+      WorkingDir: projPath,
+      Volumes: {},
+      ExposedPorts: {
+        [`${port}/tcp`]: {}
       },
-    },
-    Env: evn
-  })
-  .then(container => {
-    return container.attach({
-      stream: true,
-      stdin: true,
-      stdout: true,
-      stderr: true
-    }, (err, stream) => {
-      if (err) throw err;
+      HostConfig: {
+        //Privileged: true,
+        // NetworkMode: "isolated_nw",
+        Binds: [
+          `${projPath}:${projPath}`,
+          `${solidPath}:${solidPath}`
+        ],
+        PortBindings: {
+          [`${port}/tcp`]: [{
+            "HostPort": `${outerPort}`
+          }]
+        },
+      },
+      Env: evn
+    })
+    .then(container => {
+      return container.attach({
+        stream: true,
+        stdin: true,
+        stdout: true,
+        stderr: true
+      }, (err, stream) => {
+        if (err) throw err;
 
-      // 代理stdin，stdout
-      // process.stdin.pipe(stream);
-      (new MyReadable()).pipe(stream);
-      stream.pipe(new MyWritable());
+        // 代理stdin，stdout
+        mystdin.pipe(stream);
+        stream.pipe(mystdout);
+        mystdout.on('finish', () => {
+          console.log('控制台输出完毕, 删除容器');
+          container.inspect()
+            .then(res => {
+              let promise = Promise.resolve()
+              if (res.State.Running || res.State.Paused || res.State.Restarting) {
+                promise = container.stop().then(() => {
+                  return container.remove({
+                    force: true
+                  })
+                });
+              }
+              promise.then(() => {
+                  console.log(`socket.disconnect(true);`);
+                  socket.emit('selfclose');
+                  socket.disconnect(true);
+                })
+                .catch(ex => {
+                  util.removeContainerByName(containerName);
+                  socket.emit("err", ex);
+                  console.log("err:", ex);
+                });
+            });
+        });
 
-      // 启动容器
-      container.start()
-      // .then(container => {
-      //   return container.remove({
-      //     force: true
-      //   }).then(d => {
-      //     console.log(`socket.disconnect(true);`);
-      //     socket.disconnect(true);
-      //   });
-      // })
-      .catch(ex => {
-        util.removeContainerByName(containerName);
-        socket.emit("err", ex);
-        console.log("err:", ex);
+        // 启动容器
+        container.start()
+
+          .catch(ex => {
+            util.removeContainerByName(containerName);
+            socket.emit("err", ex);
+            console.log("err:", ex);
+          });
       });
+    })
+    .catch(err => {
+      console.log(`socket.disconnect(true);`);
+      socket.emit("msg", '容器启动失败，请重试\n');
+      socket.emit('selfclose');
+      socket.disconnect(true);
+      util.removeContainerByName(containerName);
     });
-  })
 }
 
 exports.runCMD = runCMD;
