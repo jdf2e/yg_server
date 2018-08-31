@@ -203,6 +203,22 @@ const util = {
             }
         }
         return flag;
+    },
+
+    /**
+     *
+     * @param {*} puuid 项目实例名
+     * @param {*} yg_name 固化模板名
+     */
+    async saveTemplate(puuid, yg_name) {
+        const repo = config.YG_SOLID_PATH;
+        const projPath = path.join(config.YG_BASE_PATH, puuid);
+        const saveshell = path.resolve(__dirname, '../shell/save-tpl.sh');
+        let result = await shelljs.exec(`${saveshell} ${repo} ${yg_name} ${projPath}`);
+        if (result.code === 1) {
+            return 1;
+        }
+        return 0;
     }
 }
 

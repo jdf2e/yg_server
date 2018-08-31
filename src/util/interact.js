@@ -4,6 +4,7 @@ const config = require("../util/config.js");
 const Docker = require('dockerode');
 const getPort = require('get-port');
 const util = require('./util');
+const fs = require('fs');
 
 async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTAINER_PORT, cmd) {
   class MyWritable extends Stream.Writable {
@@ -60,8 +61,20 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
 
   const docker = new Docker();
 
-  const solidName = 'solid'; // 固化模板的名称
-  const solidPath = path.resolve(config.YG_SOLID_PATH, solidName);
+  const Binds = [`${projPath}:${projPath}`];
+  try {
+    let pkg = JSON.parse(fs.readFileSync(path.join(projPath, 'package.json')).toString());
+    let solidName = pkg.yg || '';
+    if (solidName) {
+      const solidPath = path.resolve(config.YG_SOLID_PATH, solidName);
+      Binds.push(`${solidPath}:${solidPath}`);
+    }
+  }
+  catch (e) {
+    // nothing
+  }
+
+
   docker.createContainer({
       Image: 'yg',
       name: containerName,
@@ -79,10 +92,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
       HostConfig: {
         //Privileged: true,
         // NetworkMode: "isolated_nw",
-        Binds: [
-          `${projPath}:${projPath}`,
-          `${solidPath}:${solidPath}`
-        ],
+        Binds,
         PortBindings: {
           [`${port}/tcp`]: [{
             "HostPort": `${outerPort}`

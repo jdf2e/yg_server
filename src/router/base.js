@@ -23,4 +23,14 @@ baseRouter.get('/download', async function (ctx, next) {
     ctx.response.redirect("/" + ctx.request.query.puuid + ".tgz");
 });
 
+baseRouter.get('/savetpl', async function (ctx, next) {
+    ctx.set('Content-Type', 'application/json');
+    console.log(ctx.request.query);
+    const {puuid, tplname} = ctx.request.query;
+    let result = await util.saveTemplate(puuid, tplname);
+    ctx.body = {
+        code: result
+    };
+})
+
 module.exports = baseRouter;
