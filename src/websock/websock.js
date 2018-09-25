@@ -4,6 +4,7 @@ const kill = require('tree-kill');
 const config = require('../util/config');
 const util = require('../util/util');
 const {runCMD} = require('../util/interact');
+const template = require('./template');
 
 const websock = {
     init(socket) {
@@ -50,6 +51,16 @@ const websock = {
             // todo 这是个异步方法
             runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
             // util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
+        });
+
+        socket.on('clientEvent', protocol => {
+            // TODO 各条命令都由此入口
+            if (!(
+                template.handler(protocol, socket) ||
+                true
+            )) {
+                console.log('没有被任何命令处理，报错，断开连接');
+            }
         });
     },
 };
