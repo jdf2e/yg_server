@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const tarfs = require('tar-fs');
+const ss = require('socket.io-stream');
 const config = require('../util/config');
 const PM = require('./ProtocolModel');
 const eventconsts = require('../eventconsts');
@@ -23,6 +25,7 @@ module.exports.handler = function (protocol, socket) {
 function list(protocol, socket) {
   if (protocol.options.all) {
     // TODO 查看内置和自定义的模板
+    console.log('查看所有模板名')
   } else {
     // do below
   }
@@ -47,5 +50,62 @@ function list(protocol, socket) {
 }
 
 function clone(protocol, socket) {
-  console.log('list');
+  console.log('clone ');
+  let isErr = false;
+  const tpl_name = protocol.options.name;
+  try {
+    const templateDir = config.YG_TEMPLATE_PATH;
+    tpls = fs.readdirSync(templateDir) || [];
+    let index = tpls.findIndex((tpl) => {
+      return tpl === tpl_name;
+    });
+    console.log(index)
+    if (index < 0) {
+      isErr = true;
+    }
+  } catch (error) {
+    isErr = true;
+    console.log(error);
+  }
+
+  if (isErr) {
+    socket.emit(eventconsts.template.clone, new PM(
+      eventconsts.template.clone,
+      protocol.options,
+      {isErr}
+    ));
+    return;
+  }
+
+  try {
+    const tplDir = path.resolve(config.YG_TEMPLATE_PATH, tpl_name);
+    var mypack = tarfs.pack(tplDir);
+
+    let netsteam = ss.createStream();
+    netsteam.on('end', () => {
+      socket.emit(eventconsts.template.clone, new PM(
+        eventconsts.template.clone,
+        protocol.options,
+        {isErr: false}
+      ));
+    });
+    netsteam.on('error', () => {
+      socket.emit(eventconsts.template.clone, new PM(
+        eventconsts.template.clone,
+        protocol.options,
+        {isErr: true}
+      ));
+    });
+
+    ss(socket).emit(eventconsts.template.clone, netsteam, {name: tpl_name});
+
+    mypack.pipe(netsteam);
+  } catch (error) {
+    socket.emit(eventconsts.template.clone, new PM(
+      eventconsts.template.clone,
+      protocol.options,
+      {isErr: true}
+    ));
+  }
+
 }
