@@ -28,7 +28,7 @@ const util = {
         let folders = [puuid];
         let cwd = path.join(config.YG_BASE_PATH, puuid);
 
-        if (downloadFolder != "." && downloadFolder != "all") {
+        if (downloadFolder !== "." && downloadFolder !== "all") {
             downloadFolder = _.trim(downloadFolder, '/');
             cwd = path.join(cwd, downloadFolder);
             cwd = path.dirname(cwd);
@@ -70,7 +70,7 @@ const util = {
                 console.log(stringData)
                 callback();
             }
-        };
+        }
         class MyReadable extends Stream.Readable {
             constructor(options) {
                 super(options);
@@ -93,10 +93,10 @@ const util = {
             });
         } else {
             outerPort = await getPort();
-        };
+        }
         util.PORT_POOL[puuid] = outerPort;
         socket.emit("receive", {
-            outerPort: outerPort,
+            outerPort: outerPort
         });
 
 
@@ -109,10 +109,10 @@ const util = {
             port = outerPort;
             evn.push("HOST=0.0.0.0");
             evn.push("PORT=" + port);
-        };
+        }
         console.log('port----', port, outerPort);
         console.log(cmd)
-        docker.run('yg', cmd, new MyWritable, {
+        docker.run('yg', cmd, new MyWritable(), {
             name: containerName,
             AttachStdin: true,
             OpenStdin: true,
@@ -130,9 +130,9 @@ const util = {
                     [`${port}/tcp`]: [{
                         "HostPort": `${outerPort}`
                     }]
-                },
+                }
             },
-            Env: evn,
+            Env: evn
         })
         .then(container => {
             console.log(container)
@@ -208,13 +208,13 @@ const util = {
     /**
      *
      * @param {*} puuid 项目实例名
-     * @param {*} yg_name 固化模板名
+     * @param {*} ygName 固化模板名
      */
-    async saveTemplate(puuid, yg_name) {
+    async saveTemplate(puuid, ygName) {
         const repo = config.YG_SOLID_PATH;
         const projPath = path.join(config.YG_BASE_PATH, puuid);
         const saveshell = path.resolve(__dirname, '../shell/save-tpl.sh');
-        let result = await shelljs.exec(`${saveshell} ${repo} ${yg_name} ${projPath}`);
+        let result = await shelljs.exec(`${saveshell} ${repo} ${ygName} ${projPath}`);
         if (result.code === 1) {
             return 1;
         }

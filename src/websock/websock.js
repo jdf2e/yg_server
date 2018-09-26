@@ -5,6 +5,8 @@ const config = require('../util/config');
 const util = require('../util/util');
 const {runCMD} = require('../util/interact');
 const template = require('./template');
+const nmparser = require('./nmparser');
+const init = require('./init');
 
 const websock = {
     init(socket) {
@@ -41,7 +43,7 @@ const websock = {
                     oldrecord.socket.disconnect(true);
                     util.removeContainerByName("yg_c_puuid_" + data.config.puuid);
                 }
-            };
+            }
             let record = util.SOCKET_POOL[data.config.puuid] = {
                 socket: socket,
                 pInfo: data
@@ -57,12 +59,14 @@ const websock = {
             // TODO 各条命令都由此入口
             if (!(
                 template.handler(protocol, socket) ||
-                true
+                nmparser.handler(protocol, socket) ||
+                init.handler(protocol, socket)
             )) {
                 console.log('没有被任何命令处理，报错，断开连接');
+                socket.disconnect();
             }
         });
-    },
+    }
 };
 
 module.exports = websock;

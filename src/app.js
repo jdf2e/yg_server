@@ -1,6 +1,6 @@
 const Koa = require('koa');
 const path = require("path");
-const static = require('koa-static');
+const koastatic = require('koa-static');
 const formidable = require('koa2-formidable')
 const util = require('./util/util');
 const config = require('./util/config');
@@ -8,10 +8,10 @@ const baseRouter = require('./router/base');
 const websock = require("./websock/websock");
 
 const app = new Koa();
-app.use(static(path.join(__dirname, "../", "static")));
+app.use(koastatic(path.join(__dirname, "../", "static")));
 app.use(formidable({
-    uploadDir: config.YG_TMP_PATH,
-}))
+    uploadDir: config.YG_TMP_PATH
+}));
 app.use(baseRouter.routes())
     .use(baseRouter.allowedMethods());
 

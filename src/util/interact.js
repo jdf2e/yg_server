@@ -15,7 +15,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
       socket.emit("msg", chunk);
       callback();
     }
-  };
+  }
   class MyReadable extends Stream.Readable {
     constructor(options) {
       super(options);
@@ -40,11 +40,11 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
     });
   } else {
     outerPort = await getPort();
-  };
+  }
   util.PORT_POOL[puuid] = outerPort;
 
   socket.emit("receive", {
-    outerPort: outerPort,
+    outerPort: outerPort
   });
 
   let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${projPath}/node_modules/.bin`];
@@ -56,7 +56,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
     port = outerPort;
     evn.push("HOST=0.0.0.0");
     evn.push("PORT=" + port);
-  };
+  }
   console.log('port----', port, outerPort);
 
   const docker = new Docker();
@@ -69,8 +69,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
       const solidPath = path.resolve(config.YG_SOLID_PATH, solidName);
       Binds.push(`${solidPath}:${solidPath}`);
     }
-  }
-  catch (e) {
+  } catch (e) {
     // nothing
   }
 
@@ -97,7 +96,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
           [`${port}/tcp`]: [{
             "HostPort": `${outerPort}`
           }]
-        },
+        }
       },
       Env: evn
     })
@@ -108,7 +107,9 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
         stdout: true,
         stderr: true
       }, (err, stream) => {
-        if (err) throw err;
+        if (err) {
+          throw err;
+        }
 
         // 代理stdin，stdout
         mystdin.pipe(stream);
@@ -117,7 +118,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
           console.log('控制台输出完毕, 删除容器');
           container.inspect()
             .then(res => {
-              let promise = Promise.resolve()
+              let promise = Promise.resolve();
               if (res.State.Running || res.State.Paused || res.State.Restarting) {
                 promise = container.stop().then(() => {
                   return container.remove({
@@ -125,22 +126,22 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
                   })
                 });
               }
-              promise.then(() => {
-                  console.log(`socket.disconnect(true);`);
-                  socket.emit('selfclose');
-                  socket.disconnect(true);
-                })
-                .catch(ex => {
-                  util.removeContainerByName(containerName);
-                  socket.emit("err", ex);
-                  console.log("err:", ex);
-                });
+              promise
+              .then(() => {
+                console.log(`socket.disconnect(true);`);
+                socket.emit('selfclose');
+                socket.disconnect(true);
+              })
+              .catch(ex => {
+                util.removeContainerByName(containerName);
+                socket.emit("err", ex);
+                console.log("err:", ex);
+              });
             });
         });
 
         // 启动容器
         container.start()
-
           .catch(ex => {
             util.removeContainerByName(containerName);
             socket.emit("err", ex);

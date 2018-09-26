@@ -4,7 +4,7 @@ const util = require('../util/util');
 global.myArgs = process.argv.slice(2);
 
 
-let json = util.tryReadAsJSON(myArgs[0]);
+let json = util.tryReadAsJSON(global.myArgs[0]);
 json = json.sort((a, b) => {
     return a.href.localeCompare(b.href);
 })

@@ -17,4 +17,4 @@ module.exports = {
   connect: 'ygconnect',
   use: 'use',
   create: 'template/clone'
-}
+};

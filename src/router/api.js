@@ -14,7 +14,7 @@ apiRouter.interrupter = async function (ctx, next) {
     let info = {
         puuid: ctx.request.body.puuid,
         projectPath: path.join(config.YG_BASE_PATH, ctx.request.body.puuid),
-        file: ctx.request.files.file ? ctx.request.files.file.path : null,
+        file: ctx.request.files.file ? ctx.request.files.file.path : null
     }
     if (!info.puuid) {
         ctx.body = {
@@ -25,7 +25,7 @@ apiRouter.interrupter = async function (ctx, next) {
         ctx.info = info;
         ctx.body = {
             puuid: info.puuid,
-            error: false,
+            error: false
         };
         await next();
     }
@@ -39,11 +39,11 @@ apiRouter.post('/upload', async function (ctx, next) {
 
     try {
         let pkg = JSON.parse(fs.readFileSync(path.resolve(ctx.info.projectPath, 'package.json')).toString());
-        let yg_name = pkg.yg;
-        if (yg_name) {
+        let ygName = pkg.yg;
+        if (ygName) {
             console.log('链接模板node_modules')
             const injectstart = path.resolve(__dirname, '../shell/inject-start.sh');
-            shelljs.exec(`${injectstart} ${config.YG_SOLID_PATH} ${yg_name} ${ctx.info.projectPath}`);
+            shelljs.exec(`${injectstart} ${config.YG_SOLID_PATH} ${ygName} ${ctx.info.projectPath}`);
         }
     } catch (e) {
         // nothing

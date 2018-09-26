@@ -43,8 +43,7 @@ const wrapperJDF = {
             cpHandle.stderr.on('data', (data) => {
                 reject(data);
             });
-
-        })
+        });
     }
 };
 

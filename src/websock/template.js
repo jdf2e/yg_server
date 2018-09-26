@@ -52,12 +52,12 @@ function list(protocol, socket) {
 function clone(protocol, socket) {
   console.log('clone ');
   let isErr = false;
-  const tpl_name = protocol.options.name;
+  const tplName = protocol.options.name;
   try {
     const templateDir = config.YG_TEMPLATE_PATH;
-    tpls = fs.readdirSync(templateDir) || [];
+    let tpls = fs.readdirSync(templateDir) || [];
     let index = tpls.findIndex((tpl) => {
-      return tpl === tpl_name;
+      return tpl === tplName;
     });
     console.log(index)
     if (index < 0) {
@@ -78,7 +78,7 @@ function clone(protocol, socket) {
   }
 
   try {
-    const tplDir = path.resolve(config.YG_TEMPLATE_PATH, tpl_name);
+    const tplDir = path.resolve(config.YG_TEMPLATE_PATH, tplName);
     var mypack = tarfs.pack(tplDir);
 
     let netsteam = ss.createStream();
@@ -97,7 +97,7 @@ function clone(protocol, socket) {
       ));
     });
 
-    ss(socket).emit(eventconsts.template.clone, netsteam, {name: tpl_name});
+    ss(socket).emit(eventconsts.template.clone, netsteam, {name: tplName});
 
     mypack.pipe(netsteam);
   } catch (error) {
@@ -107,5 +107,4 @@ function clone(protocol, socket) {
       {isErr: true}
     ));
   }
-
 }
