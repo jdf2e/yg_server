@@ -43,6 +43,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
   }
   util.PORT_POOL[puuid] = outerPort;
   socket.emit('msg', `云构 URL：${domain}:${outerPort}\n`);
+  socket.emit('open', `${domain}:${outerPort}`);
 
   let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${projPath}/node_modules/.bin`];
 
