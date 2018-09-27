@@ -7,6 +7,8 @@ const {runCMD} = require('../util/interact');
 const template = require('./template');
 const nmparser = require('./nmparser');
 const init = require('./init');
+const ssfile = require('./ssfile');
+const start = require('./start');
 
 const websock = {
     init(socket) {
@@ -55,12 +57,18 @@ const websock = {
             // util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
         });
 
-        socket.on('clientEvent', protocol => {
+        socket.on('clientEvent', (protocol, fn) => {
+            if (fn) {
+                fn(0);
+            }
+            console.log(protocol.options);
             // TODO 各条命令都由此入口
             if (!(
                 template.handler(protocol, socket) ||
                 nmparser.handler(protocol, socket) ||
-                init.handler(protocol, socket)
+                init.handler(protocol, socket) ||
+                ssfile.handler(protocol, socket) ||
+                start.handler(protocol, socket)
             )) {
                 console.log('没有被任何命令处理，报错，断开连接');
                 socket.disconnect();

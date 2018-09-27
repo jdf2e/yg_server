@@ -6,7 +6,7 @@ const getPort = require('get-port');
 const util = require('./util');
 const fs = require('fs');
 
-async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTAINER_PORT, cmd) {
+async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTAINER_PORT, cmd, domain = 'http://yg.jd.com') {
   class MyWritable extends Stream.Writable {
     constructor(options) {
       super(options);
@@ -31,7 +31,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
   const mystdin = new MyReadable();
   const mystdout = new MyWritable();
 
-  let containerName = socket.containerName = "yg_c_puuid_" + puuid;
+  let containerName = socket.containerName = "yg_c_puuid_" + puuid.substring(0,8);
   let projPath = path.join(config.YG_BASE_PATH, puuid);
   let outerPort;
   if (util.PORT_POOL[puuid]) {
@@ -42,10 +42,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
     outerPort = await getPort();
   }
   util.PORT_POOL[puuid] = outerPort;
-
-  socket.emit("receive", {
-    outerPort: outerPort
-  });
+  socket.emit('msg', `云构 URL：${domain}:${outerPort}\n`);
 
   let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${projPath}/node_modules/.bin`];
 

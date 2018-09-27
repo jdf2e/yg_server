@@ -53,7 +53,7 @@ function list(protocol, socket) {
 function check(protocol, socket) {
   console.log('check');
 
-  let isExsit = parserapi.check(protocol.options.parserName)
+  let isExsit = parserapi.check(protocol.options.parserName);
 
   socket.emit(eventconsts.cli.check, new PM(
     eventconsts.cli.check,

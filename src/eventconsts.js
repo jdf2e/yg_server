@@ -1,4 +1,5 @@
 module.exports = {
+  uploadproj: 'uploadproj',
   cli: {
     list: 'cli/list',
     check: 'cli/check',

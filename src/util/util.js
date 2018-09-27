@@ -67,7 +67,7 @@ const util = {
             _write(chunk, encoding, callback) {
                 let stringData = chunk.toString();
                 socket.emit("msg", stringData);
-                console.log(stringData)
+                console.log(stringData);
                 callback();
             }
         }
