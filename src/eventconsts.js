@@ -1,5 +1,9 @@
 module.exports = {
+  // 整体上传工程文件
   uploadproj: 'uploadproj',
+  // 监听上传文件
+  uploadwatch: 'uploadwatch',
+
   cli: {
     list: 'cli/list',
     check: 'cli/check',

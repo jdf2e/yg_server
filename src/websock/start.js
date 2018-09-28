@@ -36,6 +36,23 @@ function start(protocol, socket) {
   }
 
   console.log('run cmd');
+  // 监听删除操作
+  socket.on(eventconsts.uploadwatch, ({evt, file}) => {
+    try {
+      const filepath = path.resolve(projPath, file);
+      if (evt === 'remove') {
+        fs.unlinkSync(filepath);
+      }
+    } catch (error) {
+      // nothing to do
+    }
+  });
+  // 监听更新操作
+  ss(socket).on(eventconsts.uploadwatch, (stream, data) => {
+    const filepath = path.resolve(projPath, data.file);
+    const targetDir = path.dirname(filepath);
+    stream.pipe(tarfs.extract(targetDir));
+  });
 
   // 启动interact.runCMD
   interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, ['npm', 'run', 'dev'], ygconfig.domain);
