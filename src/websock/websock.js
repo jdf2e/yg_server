@@ -9,6 +9,7 @@ const nmparser = require('./nmparser');
 const init = require('./init');
 const ssfile = require('./ssfile');
 const start = require('./start');
+const npm = require('./npm');
 
 const websock = {
     init(socket) {
@@ -68,7 +69,8 @@ const websock = {
                 nmparser.handler(protocol, socket) ||
                 init.handler(protocol, socket) ||
                 ssfile.handler(protocol, socket) ||
-                start.handler(protocol, socket)
+                start.handler(protocol, socket) ||
+                npm.handler(protocol, socket)
             )) {
                 console.log('没有被任何命令处理，报错，断开连接');
                 socket.disconnect();

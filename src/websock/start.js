@@ -22,6 +22,7 @@ function start(protocol, socket) {
   const ygconfig = protocol.args.ygconfig;
   const projPath = path.resolve(config.YG_BASE_PATH, ygconfig.puuid);
 
+  let errorOccur = false;
   // 将编译器软连过来
   try {
     let pkg = JSON.parse(fs.readFileSync(path.resolve(projPath, 'package.json')).toString());
@@ -32,7 +33,9 @@ function start(protocol, socket) {
         shelljs.exec(`${injectstart} ${config.YG_SOLID_PATH} ${ygName} ${projPath}`);
     }
   } catch (e) {
-      // nothing
+      console.log('链接编译器失败,断开链接,');
+      socket.emit('msg', '链接编译器失败,断开链接，可能原因是package.json格式错误\n');
+      errorOccur = true;
   }
 
   console.log('run cmd');
@@ -53,6 +56,11 @@ function start(protocol, socket) {
     const targetDir = path.dirname(filepath);
     stream.pipe(tarfs.extract(targetDir));
   });
+
+  if (errorOccur) {
+    socket.disconnect();
+    return;
+  }
 
   // 启动interact.runCMD
   interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, ['npm', 'run', 'dev'], ygconfig.domain);
