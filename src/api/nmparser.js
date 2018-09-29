@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const shelljs = require('shelljs');
 const config = require('../util/config');
 
 module.exports.list = function (all) {
@@ -34,4 +35,22 @@ module.exports.check = function (parserName) {
   }
 
   return isExsit;
+};
+
+module.exports.linkParser = function (projPath) {
+  let errorOccur = false;
+  // 将编译器软连过来
+  try {
+    let pkg = JSON.parse(fs.readFileSync(path.resolve(projPath, 'package.json')).toString());
+    pkg.yg = pkg.yg || {};
+    let ygName = pkg.yg.parser;
+    if (ygName) {
+      const injectstart = path.resolve(__dirname, '../shell/inject-start.sh');
+      shelljs.exec(`${injectstart} ${config.YG_SOLID_PATH} ${ygName} ${projPath}`);
+    }
+  } catch (e) {
+    console.log('请查看工程根目录是否有package.json且是否合法');
+    errorOccur = true;
+  }
+  return errorOccur;
 };

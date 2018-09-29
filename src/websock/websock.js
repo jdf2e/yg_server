@@ -10,25 +10,10 @@ const init = require('./init');
 const ssfile = require('./ssfile');
 const start = require('./start');
 const npm = require('./npm');
+const build = require('./build');
 
 const websock = {
     init(socket) {
-        // socket.on("regist", function (data) {
-        //     let record = util.SOCKET_POOL[data.id];
-        //     if (record) {
-        //         if (record.socket) {
-        //             record.socket.disconnect(true);
-        //         }
-        //         if (record.cProcess) {
-        //             kill(record.cProcess.pid);
-        //         }
-        //     }
-        //     util.SOCKET_POOL[data.id] = {
-        //         socket: socket,
-        //         pInfo: data
-        //     }
-        // });
-
         socket.on("disconnect", function (data) {
             console.log("disconnect");
             console.log(socket.containerName);
@@ -70,7 +55,8 @@ const websock = {
                 init.handler(protocol, socket) ||
                 ssfile.handler(protocol, socket) ||
                 start.handler(protocol, socket) ||
-                npm.handler(protocol, socket)
+                npm.handler(protocol, socket) ||
+                build.handler(protocol, socket)
             )) {
                 console.log('没有被任何命令处理，报错，断开连接');
                 socket.disconnect();

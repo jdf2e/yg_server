@@ -42,6 +42,7 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
     outerPort = await getPort();
   }
   util.PORT_POOL[puuid] = outerPort;
+  domain = domain.replace(/\:\d*$/, '');
   socket.emit('msg', `云构 URL：${domain}:${outerPort}\n`);
   socket.emit('open', `${domain}:${outerPort}`);
 
