@@ -15,8 +15,8 @@ module.exports.watchToSendRemote = function (socket, projPath) {
     }
   }, (evt, name) => {
     // 存在批量更新时不能及时响应以及性能问题，最好是做一个缓冲区
-    console.log(evt, name);
     const relativefilepath = path.relative(projPath, name);
+    console.log(evt, relativefilepath);
     if (evt === 'remove') {
       socket.emit(eventconsts.uploadwatch, {
         evt,
@@ -50,8 +50,6 @@ module.exports.listenToReceiveRemote = function (socket, projPath) {
   });
   // 监听更新操作
   ss(socket).on(eventconsts.uploadwatch, (stream, data) => {
-    const filepath = path.resolve(projPath, data.file);
-    const targetDir = path.dirname(filepath);
-    stream.pipe(tarfs.extract(targetDir));
+    stream.pipe(tarfs.extract(projPath));
   });
 };

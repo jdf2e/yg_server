@@ -48,6 +48,10 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
 
   let evn = [`PATH=/root/.nvm/versions/node/v${nodeVersion}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${projPath}/node_modules/.bin`];
 
+  // npm scripts会将tmpdir覆盖，参见各个命令的cmd尾部添加的东东
+  // https://github.com/npm/npm/issues/4531
+  evn.push('TMPDIR=/tmp');
+
   /**
    * 注射器，多种构建平台猜测配置文件
    */
@@ -63,7 +67,8 @@ async function runCMD(nodeVersion = "8.11.3", puuid, socket, port = config.CONTA
   const Binds = [`${projPath}:${projPath}`];
   try {
     let pkg = JSON.parse(fs.readFileSync(path.join(projPath, 'package.json')).toString());
-    let solidName = pkg.yg || '';
+    pkg.yg = pkg.yg || {};
+    let solidName = pkg.yg.parser || '';
     if (solidName) {
       const solidPath = path.resolve(config.YG_SOLID_PATH, solidName);
       Binds.push(`${solidPath}:${solidPath}`);

@@ -45,5 +45,5 @@ function build(protocol, socket) {
   });
 
   // 启动interact.runCMD npm xxx
-  interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, ['npm', 'run', 'build'], ygconfig.domain);
+  interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, ['npm', 'run', 'build', '--unsafe-perm'], ygconfig.domain);
 }
