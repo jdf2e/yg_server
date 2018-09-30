@@ -4,9 +4,8 @@ const tmpdir = path.join(os.tmpdir(), "yg");
 const shelljs = require('shelljs');
 shelljs.mkdir("-p", tmpdir);
 
-const env = 'development';
 const config = {
-    YG_PORT: env === 'production' ? 80 : 8081, // yg server服务的启动端口
+    YG_PORT: 80, // yg server服务的启动端口
     YG_BASE_PATH: '/export/yg_src',
     YG_SOLID_PATH: '/export/yg_parser', // 固化模板的父目录，编译器目录
     YG_TEMPLATE_PATH: '/export/yg_template', // 模板目录
