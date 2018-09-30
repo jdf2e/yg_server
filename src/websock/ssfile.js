@@ -22,6 +22,8 @@ function receive(protocol, socket) {
   try {
     // todo 为优化性能，应该保留node_modules, 音视频文件
     // shelljs.rm('-rf', projPath);
+    const list = fs.readdirSync(projPath);
+    console.log(list);
   } catch (error) {
     // nothing
   }

@@ -11,6 +11,7 @@ const ssfile = require('./ssfile');
 const start = require('./start');
 const npm = require('./npm');
 const build = require('./build');
+const clean = require('./clean');
 
 const websock = {
     init(socket) {
@@ -56,7 +57,8 @@ const websock = {
                 ssfile.handler(protocol, socket) ||
                 start.handler(protocol, socket) ||
                 npm.handler(protocol, socket) ||
-                build.handler(protocol, socket)
+                build.handler(protocol, socket) ||
+                clean.handler(protocol, socket)
             )) {
                 console.log('没有被任何命令处理，报错，断开连接');
                 socket.disconnect();

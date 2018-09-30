@@ -21,5 +21,6 @@ module.exports = {
   init: 'init',
   connect: 'ygconnect',
   use: 'use',
-  create: 'template/clone'
+  create: 'template/clone',
+  clean: 'clean'
 };
