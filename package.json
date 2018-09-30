@@ -11,6 +11,9 @@
     "type": "git",
     "url": "http://source.jd.com/app/yg-container.git"
   },
+  "engines": {
+    "node": ">=8.11.3"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
