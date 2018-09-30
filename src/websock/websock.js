@@ -4,6 +4,8 @@ const kill = require('tree-kill');
 const config = require('../util/config');
 const util = require('../util/util');
 const {runCMD} = require('../util/interact');
+const sync = require('../util/sync');
+
 const template = require('./template');
 const nmparser = require('./nmparser');
 const init = require('./init');
@@ -43,6 +45,9 @@ const websock = {
             runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
             // util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
         });
+
+        // 通知客户端版本是否匹配
+        sync.versionCheck(socket);
 
         socket.on('clientEvent', (protocol, fn) => {
             if (fn) {

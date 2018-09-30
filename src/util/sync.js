@@ -7,6 +7,8 @@ const watch = require('node-watch');
 const ignore = require('./ignore');
 const eventconsts = require('../eventconsts');
 
+let serverVersion = '';
+
 module.exports.watchToSendRemote = function (socket, projPath) {
   return watch(projPath, {
     recursive: true,
@@ -52,4 +54,17 @@ module.exports.listenToReceiveRemote = function (socket, projPath) {
   ss(socket).on(eventconsts.uploadwatch, (stream, data) => {
     stream.pipe(tarfs.extract(projPath));
   });
+};
+
+module.exports.versionCheck = function (socket) {
+  if (!serverVersion) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../package.json')).toString());
+      serverVersion = pkg.version;
+    } catch (error) {
+      // nothing
+    }
+  }
+
+  socket.emit(eventconsts.yg_version_sync, serverVersion);
 };
