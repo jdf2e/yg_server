@@ -17,14 +17,6 @@ const clean = require('./clean');
 
 const websock = {
     init(socket) {
-        socket.on("disconnect", function (data) {
-            console.log("disconnect");
-            console.log(socket.containerName);
-            if (socket.containerName) {
-                util.removeContainerByName(socket.containerName);
-            }
-        });
-
         socket.on("runshell", function (data) {
             let projectPath = path.join(config.YG_BASE_PATH, data.config.puuid);
             shelljs.mkdir("-p", projectPath);
@@ -46,15 +38,22 @@ const websock = {
             // util.runCMD(data.config.nv, data.config.puuid, socket, data.config.port, data.cmdArr);
         });
 
+        socket.on("disconnect", function (data) {
+            console.log("disconnect");
+            console.log(socket.containerName);
+            if (socket.containerName) {
+                util.removeContainerByName(socket.containerName);
+            }
+        });
+
         // 通知客户端版本是否匹配
         sync.versionCheck(socket);
 
         socket.on('clientEvent', (protocol, fn) => {
             if (fn) {
+                // 收到事件后反馈给client端，0代表正常
                 fn(0);
             }
-            console.log(protocol.options);
-            // TODO 各条命令都由此入口
             if (!(
                 template.handler(protocol, socket) ||
                 nmparser.handler(protocol, socket) ||
