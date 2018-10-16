@@ -31,7 +31,7 @@ client端入口在`bin/cli.js`，require都放在命令的回调函数里，因�
 
 在`template.js`的list方法中，emit了`clientEvent`方法，这也是所有命令行命令执行时通知到server端的方式。同时注册了一个cmd `eventconsts.template.list`监听事件，监听服务端的反馈。在监听回调里做后续操作。
 
-比较复杂的就是clone方法了。先不看监听事件，clone方法也是会emit`clientEvent`方法通知server端。不同的是它有两个监听事件，一个是类似list的服务端反馈监听事件，另一个是用于接收服务端的数据传输。数据传输是`ss(socket)`，不过他们都共同绑定`eventconsts.template.clone`事件名。
+比较复杂的就是clone方法了。clone方法也是会emit`clientEvent`方法通知server端。不同的是它有两个监听事件，一个是类似list的服务端反馈监听事件，另一个是用于接收服务端的数据传输。数据传输是`ss(socket)`，不过他们都共同绑定`eventconsts.template.clone`事件名。
 
 在数据传输完毕后，server端会emit `eventconsts.template.clone`事件，client端接收后根据PM对象做后续处理。
 
