@@ -48,12 +48,12 @@ function npm(protocol, socket) {
   let options = protocol.options
   let args = []
   for ( let k in options) {
-    if ( k != '_' && !/^\$/.test(k) ) {
+    if ( !/(^\$|\b_\b|\bdirname\b)/.test(k)){
       args.push(`--${k} ${options[k]}`)
     }
   }
   args.push('--unsafe-perm')
   args = options._.concat(args)
-
+  console.info(args)
   interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, args , ygconfig.domain);
 }
