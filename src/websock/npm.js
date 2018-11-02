@@ -45,5 +45,15 @@ function npm(protocol, socket) {
   });
 
   // 启动interact.runCMD npm xxx
-  interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, protocol.options._.concat(['--unsafe-perm']), ygconfig.domain);
+  let options = protocol.options
+  let args = []
+  for ( let k in options) {
+    if ( k != '_' ) {
+      args.push(`--${k} ${options[k]}`)
+    }
+  }
+  args.push('--unsafe-perm')
+  args = options._.concat(args)
+
+  interact.runCMD(ygconfig.nv, ygconfig.puuid, socket, ygconfig.port, args , ygconfig.domain);
 }
