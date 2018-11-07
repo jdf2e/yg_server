@@ -10,15 +10,17 @@ const websock = require("./websock/websock");
 const app = new Koa();
 app.use(koastatic(path.join(__dirname, "../", "static")));
 app.use(formidable({
-    uploadDir: config.YG_TMP_PATH
+  uploadDir: config.YG_TMP_PATH
 }));
 app.use(baseRouter.routes())
-    .use(baseRouter.allowedMethods());
+  .use(baseRouter.allowedMethods());
 
 const server = require('http').createServer(app.callback());
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+  transports: ['websocket']
+});
 io.on('connect', (socket) => {
-    websock.init(socket);
+  websock.init(socket);
 });
 
 let port = process.env.YG_PORT || config.YG_PORT;
