@@ -12,6 +12,7 @@ const init = require('./init');
 const ssfile = require('./ssfile');
 const start = require('./start');
 const npm = require('./npm');
+const cmd = require('./cmd');
 const build = require('./build');
 const clean = require('./clean');
 
@@ -61,6 +62,7 @@ const websock = {
                 ssfile.handler(protocol, socket) ||
                 start.handler(protocol, socket) ||
                 npm.handler(protocol, socket) ||
+                cmd.handler(protocol, socket) ||
                 build.handler(protocol, socket) ||
                 clean.handler(protocol, socket)
             )) {
