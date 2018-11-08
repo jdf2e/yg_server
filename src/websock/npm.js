@@ -48,7 +48,7 @@ function npm(protocol, socket) {
   let options = protocol.options
   let args = []
   for ( let k in options) {
-    if ( !/(\b_\b)/.test(k)){
+    if ( !/(^\$|\bdirname\b|\b_\b)/.test(k)){
       args.push(`--${k} ${options[k]}`)
     }
   }
